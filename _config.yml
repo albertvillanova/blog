@@ -42,7 +42,7 @@ minima:
     twitter: avillanovamoral
     github: albertvillanova
     linkedin: albertvillanova
-    stackoverflow: 4274763
+    stackoverflow: "4274763"
 
 # Set this to true to get LaTeX math equation support
 use_math: 
