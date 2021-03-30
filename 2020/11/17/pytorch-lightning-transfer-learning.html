@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Transfer Learning from Supervised and Self-Supervised Pretraining using PyTorch Lightning | Albert Villanova del Moral</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="Transfer Learning from Supervised and Self-Supervised Pretraining using PyTorch Lightning" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="A journey from Data to AI. The journey is the reward." />
+<meta property="og:description" content="A journey from Data to AI. The journey is the reward." />
+<link rel="canonical" href="https://albertvillanova.github.io/blog/2020/11/17/pytorch-lightning-transfer-learning.html" />
+<meta property="og:url" content="https://albertvillanova.github.io/blog/2020/11/17/pytorch-lightning-transfer-learning.html" />
+<meta property="og:site_name" content="Albert Villanova del Moral" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-11-17T00:00:00-06:00" />
+<script type="application/ld+json">
+{"url":"https://albertvillanova.github.io/blog/2020/11/17/pytorch-lightning-transfer-learning.html","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://albertvillanova.github.io/blog/2020/11/17/pytorch-lightning-transfer-learning.html"},"headline":"Transfer Learning from Supervised and Self-Supervised Pretraining using PyTorch Lightning","dateModified":"2020-11-17T00:00:00-06:00","datePublished":"2020-11-17T00:00:00-06:00","description":"A journey from Data to AI. The journey is the reward.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://albertvillanova.github.io/blog/feed.xml" title="Albert Villanova del Moral" /><link rel="shortcut icon" type="image/x-icon" href="/blog/images/favicon.ico"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/blog/">Albert Villanova del Moral</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/blog/about/">About Me</a><a class="page-link" href="/blog/search/">Search</a><a class="page-link" href="/blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Transfer Learning from Supervised and Self-Supervised Pretraining using PyTorch Lightning</h1><p class="post-meta post-meta-title"><time class="dt-published" datetime="2020-11-17T00:00:00-06:00" itemprop="datePublished">
+        Nov 17, 2020
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      7 min read
+    
+</span></p>
+
+    
+
+    
+      
+        <div class="pb-5 d-flex flex-wrap flex-justify-end">
+          <div class="px-2">
+
+    <a href="https://github.com/albertvillanova/blog/tree/master/_notebooks/2020-11-17-pytorch-lightning-transfer-learning.ipynb" role="button" target="_blank">
+<img class="notebook-badge-image" src="/blog/assets/badges/github.svg" alt="View On GitHub">
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://mybinder.org/v2/gh/albertvillanova/blog/master?filepath=_notebooks%2F2020-11-17-pytorch-lightning-transfer-learning.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/blog/assets/badges/binder.svg" alt="Open In Binder"/>
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://colab.research.google.com/github/albertvillanova/blog/blob/master/_notebooks/2020-11-17-pytorch-lightning-transfer-learning.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/blog/assets/badges/colab.svg" alt="Open In Colab"/>
+    </a>
+</div>
+        </div>
+      </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h2"><a href="#Supervised-Pretraining">Supervised Pretraining </a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#Fitting-only-the-new-finetuning-layer">Fitting only the new finetuning layer </a></li>
+<li class="toc-entry toc-h3"><a href="#Fitting-all-the-model-after-10-epochs">Fitting all the model after 10 epochs </a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#Self-Supervised-Pretraining">Self-Supervised Pretraining </a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#Fitting-all-the-model-after-10-epochs">Fitting all the model after 10 epochs </a></li>
+</ul>
+</li>
+</ul><!--
+#################################################
+### THIS FILE WAS AUTOGENERATED! DO NOT EDIT! ###
+#################################################
+# file to edit: _notebooks/2020-11-17-pytorch-lightning-transfer-learning.ipynb
+-->
+
+<div class="container" id="notebook-container">
+        
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Credit to original author William Falcon, and also to Alfredo Canziani for posting the video presentation: <a href="https://www.youtube.com/watch?v=nCq_vy9qE-k"><em>Supervised and self-supervised transfer learning (with PyTorch Lightning)</em></a></p>
+<p>In the video presentation, they compare transfer learning from pretrained:</p>
+<ul>
+<li>supervised</li>
+<li>self-supervised</li>
+</ul>
+<p>However, I would like to point out that the comparison is not entirely fair for the case of supervised pretraining. The reason is that they do not replace the last fully-connected layer of the supervised pretrained backbone model with the new finetuning layer. Instead, they stack the new finetuning layer on top of the pretrained model (including its last fully connected layer).</p>
+<p>This is a clear disadvantage for the supervised pretrained model because:</p>
+<ul>
+<li>all its expressive power is contained in the output of the penultimate layer</li>
+<li>and it was already used by the last fully-connected layer to predict 1,000 classes</li>
+</ul>
+<p>When stacking the finetuning layer on top of it, this has to perform the 10-class classification using the output of the 1,000-class classfication layer.</p>
+<p>On the contrary, if we replace the backbone last fully connected layer with the new finetuning layer, it will be able to perform the 10-class classification using all the expressive power of the features coming from the output of the penultimate layer.</p>
+<p>In this notebook I show that if we replace the last fully connected layer with the new finetuning layer, both supervised and self-supervised approaches give comparable results.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="o">%%capture</span>
+<span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="n">pytorch</span><span class="o">-</span><span class="n">lightning</span>
+<span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="n">pytorch</span><span class="o">-</span><span class="n">lightning</span><span class="o">-</span><span class="n">bolts</span><span class="o">==</span><span class="mf">0.2</span><span class="o">.</span><span class="mi">5</span><span class="n">rc1</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
+<span class="kn">import</span> <span class="nn">pl_bolts</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"pl version: </span><span class="si">{</span><span class="n">pl</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"pl_bolts version: </span><span class="si">{</span><span class="n">pl_bolts</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>pl version: 1.0.6
+pl_bolts version: 0.2.5rc1
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torchvision</span> <span class="kn">import</span> <span class="n">models</span>
+
+<span class="n">resnet50</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Downloading: "https://download.pytorch.org/models/resnet50-19c8e357.pth" to /root/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">torchvision.datasets</span> <span class="kn">import</span> <span class="n">CIFAR10</span>
+<span class="kn">from</span> <span class="nn">torchvision</span> <span class="kn">import</span> <span class="n">transforms</span>
+
+<span class="n">normalize</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="p">[</span><span class="n">x</span> <span class="o">/</span> <span class="mf">255.0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">125.3</span><span class="p">,</span> <span class="mf">123.0</span><span class="p">,</span> <span class="mf">113.9</span><span class="p">]],</span>
+                                 <span class="n">std</span><span class="o">=</span><span class="p">[</span><span class="n">x</span> <span class="o">/</span> <span class="mf">255.0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">63.0</span><span class="p">,</span> <span class="mf">62.1</span><span class="p">,</span> <span class="mf">66.7</span><span class="p">]])</span>
+
+<span class="n">cf10_transforms</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+    <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+    <span class="n">normalize</span>
+<span class="p">])</span>
+
+<span class="n">cifar_10</span> <span class="o">=</span> <span class="n">CIFAR10</span><span class="p">(</span><span class="s1">'.'</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">cf10_transforms</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Downloading https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz to ./cifar-10-python.tar.gz
+Extracting ./cifar-10-python.tar.gz to .
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+
+<span class="n">image</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">cifar_10</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"LABEL: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">plt_img</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">plt_img</span><span class="p">);</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers).
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>LABEL: 6
+
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPsAAAD5CAYAAADhukOtAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAADh0RVh0U29mdHdhcmUAbWF0cGxvdGxpYiB2ZXJzaW9uMy4yLjIsIGh0dHA6Ly9tYXRwbG90bGliLm9yZy+WH4yJAAAXD0lEQVR4nO3de5RV1X0H8O9PHqKCARyLBDGDChqLCeqEZRN0+QgqmhRNWhvbRtLaYBtNsCtpyjIr1bRNa7IarHlUMz6WaH3RGKJJYxpDXVVTH4yKqICKiBXW8IiIQAi++PWPc1gZ9Py+98659547ur+ftVgM+zf7nM2Z+5t77/ndvbe5O0Tk3W+Pdg9ARKqhZBdJhJJdJBFKdpFEKNlFEqFkF0nE4EY6m9lpAK4AMAjANe5+WY3vH/B1vn1ILLpYZS/iKyT2BomNILHot/drpM+rJLYnie0scUx2fZnXSYw9Yw0K2vcmffYaGscGkx/2q+Qiu5ETBv+B18nx3gwy6dcAdnjx2Uonu5kNAvA9ANMBrAGw2MzudPdlZY85EEwmsQOC9pElz/UzEltPYlNJbFjQvob0eZ7EJpDYNhJ7Lmhn15dZR2LDS8Q+RPpMfm8c69g/jq18MY69wTIt+KGtIz+0l4Nng7vIs0QjL+OnAljp7qvc/TUAtwKY2cDxRKSFGkn2cQD6/i5bk7eJyADU0Hv2epjZbACzW30eEeEaSfa1AMb3+feBedtu3L0bQDfwzrhBJ/Ju1cjL+MUAJprZBDMbCuBTAO5szrBEpNmskVlvZnY6gH9FVuG4zt2/XuP7B/wzOyvJRDc6WZmMladkd6TiRUuHY0iMVTXKHI+9FC77MvmFkv0iHpTeGkr2/lKyC6Nkb44o2fUJOpFEKNlFEqFkF0mEkl0kEUp2kUS0/BN0A9G+JDaExF5q9kBaIKombCd99iOxrSTG7pCXwWbzsQdqJ4m9HLSzCkrUB+BjnEJiS0isKnpmF0mEkl0kEUp2kUQo2UUSoWQXSUSSd+O3tHsALTQjaO8hfXpJrOwd9+hz7ux40ZJaANBBYmx5rFFBO/vMPLvjzsbIlv4aCPTMLpIIJbtIIpTsIolQsoskQskukgglu0gi3tHLUpVdxmigYBNy3s3lwcghJBbtxgMAK0ns8KCd7TDDdsh5JzyutCyVSOKU7CKJULKLJELJLpIIJbtIIpTsIolodPun1ciWKXsTwBvu3lXj+5taemOlq/Ek9isS+w2JpVgOe7f6CIltJrGnmj2QFohKb82Y4nqiu7P8EZEBQC/jRRLRaLI7gJ+b2SNmNrsZAxKR1mj0Zfw0d19rZr8D4G4zW+Hu9/b9hvyXgH4RiLRZQ8/s7r42/3sDgIUAphZ8T7e7d9W6eScirVU62c1sHzMbsetrAKcAeLJZAxOR5mrkZfwYAAvNbNdxbnb3nzVlVHViWzUx7D9dprzGZt8dSWKPlDiXvN3vklhUKmPbPx1HYi+S2EAvzZZOdndfBeCDTRyLiLSQSm8iiVCyiyRCyS6SCCW7SCKU7CKJeEfs9bZf0B4tJgjwfbc2ktgxJBaVa9jihWyGEFtg8TkSq9ILJHbQyDhmbOpYk5WZiVZ2eBNI7PGSx4ywZ+KdTT6eiLyLKNlFEqFkF0mEkl0kEUp2kURUuv3T3mY+KYg9S/qNCtpfJn221zekt9mbxPYK2l8ifdjkAXYXfz2JVanso+N7QfuFZQdSocNK9uslsR0kVmZLqaiSswbADm3/JJI2JbtIIpTsIolQsoskQskukgglu0giKp0Isy+A6UEsageAYUH7PaTPL+sa0duxEkk0EeZ9pA+bCDNQymvM50mMlT7ZRKSBrmxS7E9ibM27KMaub9SHlUr1zC6SCCW7SCKU7CKJULKLJELJLpIIJbtIImpWGczsOgAfA7DB3SfnbaMB3AagE8BqAGe7O6sUND6QAgeSGCuHkaXTwjIfEJfR2Dj+h8SqxGbfsf8z+6E+SGLRNWbr7h1AYvNI8GIyfXAROWaElcnY2nXsOnaQWFTuZWXgKF8Kp7vl6nlmvx7AaW9pmwtgkbtPRHY959ZxHBFpo5rJnu+3vuktzTMBzM+/ng/gzCaPS0SarOx79jHuvmuu/jpkO7qKyADW8Mdl3d3NLPyUnpnNBjAbAEY0ejIRKa3sM/t6MxsLAPnfG6JvdPdud+9y9y625JOItFbZZL8TwKz861kA7mjOcESkVeopvd0C4AQAHWa2BsAlAC4DsMDMzkO2Q9DZ9ZxsB+KFJcu8n3iSxNjif6yctKXEOFqx09EnSWwFiUWz1FhZ6xckdiiJMV8O2tlMxTlfIMFTDg5Dv1iwKozZDeSYAVYmK1OaBXgZbVuJc5WZ9VYzx9z9nCB0cq2+IjJw6BN0IolQsoskQskukgglu0gilOwiiah0r7d9zXxqECuzIB+bvTacxG4jsSodQ2I9pAy17Ntx7Iio3+8fFHda8H9x7KQ4hB2kmDNsn+Bcr8R9jotDO1+MY9+ZF8f+IWhn+/Oxz36zxykrbbHHY9SPHS8q1/UCeFV7vYmkTckukgglu0gilOwiiVCyiyRCyS6SiEr3ehsxFDjxvcWxzavjfo8F7awMcn+dY2onto8aLohDHYtJvwlB+8nRVQRw8vfJAReSGCnZrQp2sns/OVxUTwKwx5FxbM4H4tiHgv/a4gfiPrfEITqz7XkSYyYH7WQdzXBm3kbSR8/sIolQsoskQskukgglu0gilOwiiah0IsxIMz8hipF+bP2uCFuf7qkSxytrXxJ75W/j2BayUN653XHsR9ePKw7MupuMhN0iZ1jNI/qp/Yz0Yfe6p5NY8H8GkC2fWGR+0A581T4TxsicG1ra2ovEorXm2J316HibAbyhiTAiaVOyiyRCyS6SCCW7SCKU7CKJULKLJKKe7Z+uA/AxABvcfXLedimAz+K31YGL3f2ntY41CPFaXGQORDjhhW2Pw45XpeXnkuBlS8PQSRbP7vgzdsLetcXtd1wc95nJJrsw00r0OZHEnikZO6HEOGaFkWGHfiaMbV8ZH5E9c5bZVowdb3uTj7fL9QBOK2i/3N2n5H9qJrqItFfNZHf3ewFsqmAsItJCjbxnv9DMlprZdWY2qmkjEpGWKJvsVwI4BMAUZEtVfyv6RjObbWY9ZtZT5mOvItIcpZLd3de7+5vuvhPA1QCivR/g7t3u3uXuXeyGmoi0VqlkN7Oxff55Fvi8ExEZAOopvd2CrLbRYWZrAFwC4AQzmwLAAawGcH49JzNyQlYqi/qwGwVsfbpmu4rE3jufLHa2NS69HUiOeQGbpBZdrJlnkk5VGhSHXo5n5v3FGXPC2DX/y9bQmx20x+vndRwRH20mmZi3g7x03UYWlNsctDd7dmbNZHf3cwqar23yOESkxfQJOpFEKNlFEqFkF0mEkl0kEUp2kURUuv3TTsTLEJLJRDggaGeLVEaz6xpxRtB+/qbzSK9jw8jDFx0XxsgcNeBHvxfHJv1TECB9SnswjGy66XuF7ds2Ph32OWjq+8LYWZ+IR/HMf8aV30lnRKW3J8I+bzwbn2twVCdDuZmbAHBo0B497gEgKuiyT6nqmV0kEUp2kUQo2UUSoWQXSYSSXSQRSnaRRFRaehsMYP8g9hzpF8V+Sfq04rfYvEv+tDgw6ppSx9u4OC7IHBfVYwBgEtsvrXh3udcWXRj2WPPssjD2wAP3hbGFN8Tjj0qfE8gj7vP/vDiMnfElNrGSTFMLxaXIkc/HvVaQI7KyF6nY4bGgnU1uPLejuP12ciI9s4skQskukgglu0gilOwiiVCyiySi0rvxrwF4MYgNJf2iQUZ39gE+8YBNkrnij+PYpEtvJD37bwRZs+yeeJ4GZm69IA4+XDwdY8+P/ijsclh8NJAb0/hzEjs2mKX0FXK3eN3X4tiVF5CH6l5fICOJBNtkAVhBbqs3e1045nESGx6shce2hdIzu0gilOwiiVCyiyRCyS6SCCW7SCKU7CKJqGf7p/EAbgAwBtl2T93ufoWZjQZwG4BOZFtAne3uL7NjOfhkgf4Okp1sCIl1ktipN/2k5nj65dF5YejFqA4JoIcccuaF/x7GnglqjnuT400hsXgFPeAPO+NY9+ridvYzW04Wcbt3bvGadgBw/GXT446PPVrcPjIuzm5mWVHlvmJEVMF8k/Sp55n9DQBfdPcjkP3sLzCzIwDMBbDI3ScCWJT/W0QGqJrJ7u697v5o/vVWAMsBjAMwE8D8/NvmAxgoOweKSIF+vWc3s04ARwF4CMAYd+/NQ+uQvcwXkQGq7mQ3s+EAbgdwkbtv6Rtzd0f2lryo32wz6zGzntcaGqqINKKuZDezIcgS/SZ3/2HevN7MxubxsQA2FPV1925373L3Lvb5dxFprZrJbmaGbD/25e7e99bynQBm5V/PAnBH84cnIs1i2Stw8g1m0wDch2y/nJ1588XI3rcvAHAQgBeQld42sWO9x8yjlb/+i/SLbgZsJX3Y7J+LSGwjic2Y8Z7C9nPOnxP2Wbc82qgHeOLmu+N+ZNbbrGhHIyCcCvj5r8ddyG5HmEhirEIVDZ9VrtaVPBcrHa4hsQjbxumREserpXjVQH7tb76+uP0TlwJPPu9WFKtZZ3f3+wEUdgZwcq3+IjIw6BN0IolQsoskQskukgglu0gilOwiiah0wcmdiGe9sc/adpY4FyvxsJl3C0lsyV2vFLZP/NXflzrXqdOLS3kAgM+R1Si3rQ9DtweTw9j1IGdCL4mxhTuPDNrZrDd2PIaVyqL/W1wQBbaQGB0kq5WRB8KW5cXth38o7jMpWBh12LfjPnpmF0mEkl0kEUp2kUQo2UUSoWQXSYSSXSQRlZbe9kBcCukk/aKy0WTSJyr9ANm6WpGPk9iooL13cdyHld6e6Sgu5QHApFlkJL1x6e2Tiw4ubP/xId8P+7DZZh0ktpLEotmNY0mfEST2GIn9ksSabdxJcWzt66TjXf0/15Gk9BY+iMkDTs/sIolQsoskQskukgglu0gilOwiiaj0bvwQAAcEsRWkXzT3gN3pZnfc2V3f8SQW3Zke2xn3mfrhOHbTgjg2ac5LcfDUb8SxZcXbV13/gxlhl1UL4lvFXyZjJMvkYWTQfhzpwx6MVd5xZ8+Ag58nQXZBiI8E7X9N7vz/zSeL29eQLcX0zC6SCCW7SCKU7CKJULKLJELJLpIIJbtIIurZ/mk8gBuQLRPnALrd/QozuxTAZ/HbHZMudvefsmMdNsT8yqAmM+9Xcb9owgUr1bA116KyEBBP4ACAw4N2tizZDDKZ4S4ygeYecsxvfi6OXf5vxe1snbnDD4xjPyb7Jz1Ijhn9ONk42Pp07Oc5gcQ6g/bNpA9b045tlcV2KT6MxFZ8Jwj8Sdxn8uji9ucA/MZLbv+E7Dp/0d0fNbMRAB4xs12blF3u7v9SxzFEpM3q2eutF/kio+6+1cyWAxjX6oGJSHP16z27mXUCOArZDq4AcKGZLTWz68wsmu4tIgNA3cluZsMB3A7gInffAuBKAIcg2zG3F8C3gn6zzazHzHo27yz6DhGpQl3JbmZDkCX6Te7+QwBw9/Xu/qa77wRwNYCpRX3dvdvdu9y9a6Tu/Yu0Tc30MzMDcC2A5e4+r0973xWGzgLwZPOHJyLNUk/pbRqA+5DN6dn1QvxiAOcgewnvAFYDOD+/mRfqGm/eM6c49lrhm4DMnGCRtBvIubaT2CEk1lkixmbRbSSxHhJjk6tI5Q1dQfuNJcfxGxI7l8SiO793B+0AL4meSGLRTEoAIJXDEJu8xq4VKyte2xnHTl1W3L6d5MQ+X41jXrb05u73AyjqTGvqIjKw6F20SCKU7CKJULKLJELJLpIIJbtIIipdcBL7AjilODSULGz4UbY/UWAhibGyFiv/RMNYTfqQyXx4msTGkBgbfzQri13CrSTGZpuxLZmi2YPHkj5sOyn285xCYtEDnD3wWSmPTBCk/U79LgkGq6Oy8loZemYXSYSSXSQRSnaRRCjZRRKhZBdJhJJdJBHVlt72RLw6IFnpccZRxe2jyOp/HWTFxgfiEDUxaGelK7Z4IftNG+0rB/AFLqNZXqz0xsprZRf1jK7J/qQPw/Z6Y4tARnvLsRIrm73G9hB8nMS2kzplD5u+2UR6ZhdJhJJdJBFKdpFEKNlFEqFkF0mEkl0kEdWW3n4N4NEgRlZt3PsDxe0nRbUwAJPHx7FpZEXBJaREEoWWxF3orDeyDRxd+JLtUxaVlNiMLFbmYw+QaO87ANgraGf7uY0lsWNI7BESi7bTY3v6rSAxtp8b82Eyg+3T7y950H7SM7tIIpTsIolQsoskQskukgglu0gi6tn+aRiAe5FNYxkM4AfufomZTQBwK4D9kN0Q/bS705uVR+5rfkewP9EaMnGl6+zi9r3J3Xh6i5nd9iV36u/97+L2u8nMGrbdEZvQwmLsbnxkB4mxO+5lxxFNkik7wYdtJMjW8hso2JqCy2YXt+/XXe5c0fZP9TyzvwrgJHf/ILK1/U4zs2MBfAPA5e5+KLKKynnlhiYiVaiZ7J7ZNVNzSP7HAZwE4Ad5+3wAZ7ZkhCLSFPXuzz7IzJYA2IDslelzADa7+65Xa2sAjGvNEEWkGepKdnd/092nIFs2eyr4h6d2Y2azzazHzHo2lf34kYg0rF934919M4B7kH3acKSZ7bq3cyCAtUGfbnfvcveu0UMbGquINKBmspvZ/mY2Mv96LwDTka3Ocw+AP8i/bRaAO1o1SBFpXD0TYcYCmG9mg5D9cljg7j8xs2UAbjWzf0Q2R+TaWgfaOdiwbf89C2MbD4iLQ2uC0KFkVsUe0eJjAHAqif1RHDo+ON/xP437fPyHcezZpXFsW5m6FoAdQb/V5HBsksxw8ghZTMYRbeXESm9sYhArHZYpve1HYi+VOF4t106PY6O/W1zI+svuOKWuKjGGmsnu7ksBvG3JR3dfhez9u4i8A+gTdCKJULKLJELJLpIIJbtIIpTsIomoOeutqScz2wjghfyfHeBLtFVF49idxrG7d9o43ufuhbtsVZrsu53YrMfdgwmvGofGoXE0exx6GS+SCCW7SCLamewl1+FoOo1jdxrH7t4142jbe3YRqZZexoskoi3JbmanmdnTZrbSzOa2Ywz5OFab2RNmtsTMeio873VmtsHMnuzTNtrM7jazZ/O/R7VpHJea2dr8miwxs9MrGMd4M7vHzJaZ2VNmNidvr/SakHFUek3MbJiZPWxmj+fj+FrePsHMHsrz5jYz698KEe5e6R8Ag5Ata3UwgKEAHgdwRNXjyMeyGkBHG857PICjATzZp+2bAObmX88F8I02jeNSAF+q+HqMBXB0/vUIAM8AOKLqa0LGUek1AWAAhudfDwHwEIBjASwA8Km8/SoAf9Wf47bjmX0qgJXuvsqzpadvBTCzDeNoG3e/F8CmtzTPRLZwJ1DRAp7BOCrn7r3u/mj+9VZki6OMQ8XXhIyjUp5p+iKv7Uj2cQBe7PPvdi5W6QB+bmaPmFmwendlxrh7b/71OvClxlvtQjNbmr/Mb/nbib7MrBPZ+gkPoY3X5C3jACq+Jq1Y5DX1G3TT3P1oADMAXGBmx7d7QED2mx3ZL6J2uBLAIcj2COgF8K2qTmxmwwHcDuAid9/SN1blNSkYR+XXxBtY5DXSjmRfC6Dv7unhYpWt5u5r8783AFiI9q68s97MxgJA/veGdgzC3dfnD7SdAK5GRdfEzIYgS7Cb3H3XYl6VX5OicbTrmuTn7vcir5F2JPtiABPzO4tDAXwKwJ1VD8LM9jGzEbu+BnAK+C5DrXYnsoU7gTYu4LkruXJnoYJrYmaGbA3D5e4+r0+o0msSjaPqa9KyRV6rusP4lruNpyO70/kcgK+0aQwHI6sEPA7gqSrHAeAWZC8HX0f23us8ZGsgLgLwLIBfABjdpnHciGzHu6XIkm1sBeOYhuwl+lIAS/I/p1d9Tcg4Kr0mAD6AbBHXpch+sfxdn8fsw8jW8/wPAHv257j6BJ1IIlK/QSeSDCW7SCKU7CKJULKLJELJLpIIJbtIIpTsIolQsosk4v8BcpF/dz7SjhUAAAAASUVORK5CYII=%0A">
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
+
+<span class="n">train_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">cifar_10</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">train_loader</span><span class="p">:</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">break</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>torch.Size([32, 3, 32, 32]) torch.Size([32])
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torchvision</span> <span class="kn">import</span> <span class="n">models</span>
+
+<span class="n">resnet50</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">resnet50</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+    <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="n">num_classes</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">resnet50</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">resnet50</span><span class="o">.</span><span class="n">fc</span><span class="o">.</span><span class="n">in_features</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
+
+<span class="c1"># Use afterwards in optimizer: resnet50.fc.parameters()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">train_loader</span><span class="p">))</span>
+
+<span class="n">preds</span> <span class="o">=</span> <span class="n">resnet50</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">preds</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>tensor([[-0.3801, -0.5696,  0.6141, -0.0555, -0.0337, -0.0064,  0.6410,  0.5071,
+          0.5621, -0.3443],
+        [ 0.8296, -0.8653,  0.4210, -0.1691,  0.4789, -0.6263,  1.6198,  0.1962,
+          1.6246, -0.7211],
+        [-0.2604,  0.1539,  0.4095, -0.1340, -0.0187, -0.2622,  0.5658,  0.2214,
+          0.6504, -0.0676],
+        [ 0.2170,  0.0293,  0.1628,  0.3194, -0.0261, -0.3643,  0.0667,  0.0840,
+          0.2994, -0.4926],
+        [ 0.5270, -0.7288, -0.4667,  0.3634,  0.4815,  0.3479,  1.4035,  0.4295,
+          0.3564, -0.1770]], grad_fn=&lt;SliceBackward&gt;)</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">torch.nn.functional</span> <span class="kn">import</span> <span class="n">softmax</span>
+
+<span class="n">preds</span> <span class="o">=</span> <span class="n">softmax</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">preds</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>tensor([[0.0569, 0.0470, 0.1537, 0.0787, 0.0804, 0.0826, 0.1579, 0.1381, 0.1459,
+         0.0589],
+        [0.1203, 0.0221, 0.0799, 0.0443, 0.0847, 0.0280, 0.2650, 0.0638, 0.2663,
+         0.0255],
+        [0.0646, 0.0978, 0.1263, 0.0733, 0.0823, 0.0645, 0.1476, 0.1046, 0.1606,
+         0.0784],
+        [0.1171, 0.0970, 0.1109, 0.1297, 0.0918, 0.0655, 0.1007, 0.1025, 0.1271,
+         0.0576],
+        [0.1118, 0.0318, 0.0414, 0.0949, 0.1068, 0.0935, 0.2687, 0.1014, 0.0943,
+         0.0553]], grad_fn=&lt;SliceBackward&gt;)</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">pred_labels</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">pred_labels</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>tensor([6, 8, 8, 3, 6])</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">y</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>tensor([6, 9, 1, 8, 8])</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">pl_bolts.datamodules</span> <span class="kn">import</span> <span class="n">CIFAR10DataModule</span>
+
+<span class="n">dm</span> <span class="o">=</span> <span class="n">CIFAR10DataModule</span><span class="p">(</span><span class="s1">'.'</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Supervised-Pretraining">
+<a class="anchor" href="#Supervised-Pretraining" aria-hidden="true"><span class="octicon octicon-link"></span></a>Supervised Pretraining<a class="anchor-link" href="#Supervised-Pretraining"> </a>
+</h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Fitting-only-the-new-finetuning-layer">
+<a class="anchor" href="#Fitting-only-the-new-finetuning-layer" aria-hidden="true"><span class="octicon octicon-link"></span></a>Fitting only the new finetuning layer<a class="anchor-link" href="#Fitting-only-the-new-finetuning-layer"> </a>
+</h3>
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># from torch.nn.functional import cross_entropy</span>
+<span class="c1"># from torch.optim import Adam</span>
+
+<span class="c1"># optimizer = Adam(resnet50.fc.parameters(), lr=1e-3)</span>
+
+<span class="c1"># epochs = 10</span>
+<span class="c1"># for epoch in range(epochs):</span>
+<span class="c1">#     for batch in dm.train_dataloader():</span>
+<span class="c1">#         x, y = batch</span>
+
+<span class="c1">#         # features = backbone(x)</span>
+<span class="c1">#         # # disable gradients to backbone if all parameters used by the optimizer</span>
+<span class="c1">#         # features = features.detach()</span>
+
+<span class="c1">#         # # tell PyTorch not to track the computational graph: much faster, less memory used: not backpropagated</span>
+<span class="c1">#         # with torch.no_grad():</span>
+<span class="c1">#         #     features = backbone(x)</span>
+
+<span class="c1">#         # preds = finetune_layer(features)</span>
+
+<span class="c1">#         preds = resnet50(x)</span>
+
+<span class="c1">#         loss = cross_entropy(preds, y)</span>
+
+<span class="c1">#         loss.backward()</span>
+<span class="c1">#         optimizer.step()</span>
+<span class="c1">#         optimizer.zero_grad()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
+<span class="kn">from</span> <span class="nn">pytorch_lightning.metrics.functional</span> <span class="kn">import</span> <span class="n">accuracy</span>
+
+<span class="kn">from</span> <span class="nn">torch.nn.functional</span> <span class="kn">import</span> <span class="n">cross_entropy</span>
+<span class="kn">from</span> <span class="nn">torch.optim</span> <span class="kn">import</span> <span class="n">Adam</span>
+
+<span class="k">class</span> <span class="nc">ImageClassifier</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_hyperparameters</span><span class="p">()</span>
+        <span class="c1"># self.num_classes = num_classes</span>
+        <span class="c1"># self.lr = lr</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">fc</span><span class="o">.</span><span class="n">in_features</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+        <span class="c1"># return the loss given a batch: this has a computational graph attached to it: optimization</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
+        <span class="n">preds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">cross_entropy</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_loss'</span><span class="p">,</span> <span class="n">loss</span><span class="p">)</span>  <span class="c1"># lightning detaches your loss graph and uses its value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_acc'</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">loss</span>
+
+    <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># return optimizer</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">fc</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hparams</span><span class="o">.</span><span class="n">lr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">optimizer</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">classifier</span> <span class="o">=</span> <span class="n">ImageClassifier</span><span class="p">()</span>
+
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">Trainer</span><span class="p">(</span><span class="n">progress_bar_refresh_rate</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">gpus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_epochs</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># for Colab: set refresh rate to 20 instead of 10 to avoid freezing</span>
+<span class="n">trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">dm</span><span class="p">)</span>  <span class="c1"># train_loader</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>GPU available: True, used: True
+TPU available: False, using: 0 TPU cores
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/usr/local/lib/python3.6/dist-packages/pytorch_lightning/utilities/distributed.py:45: UserWarning: you passed in a val_dataloader but have no validation_step. Skipping validation loop
+  warnings.warn(*args, **kwargs)
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Files already downloaded and verified
+Files already downloaded and verified
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>
+  | Name  | Type   | Params
+---------------------------------
+0 | model | ResNet | 23 M  
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>1</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">reload_ext</span> tensorboard
+<span class="o">%</span><span class="k">tensorboard</span> --logdir lightning_logs/
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+
+<div id="1a8e259a-1f2c-4ec7-a3dc-7e11e5dceedf"></div>
+<div class="output_subarea output_javascript ">
+<script type="text/javascript">
+var element = $('#1a8e259a-1f2c-4ec7-a3dc-7e11e5dceedf');
+
+        (async () => {
+            const url = await google.colab.kernel.proxyPort(6006, {"cache": true});
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.setAttribute('width', '100%');
+            iframe.setAttribute('height', '800');
+            iframe.setAttribute('frameborder', 0);
+            document.body.appendChild(iframe);
+        })();
+    
+</script>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><img src="/blog/images/copied_from_nb/img/20201117-1-train_acc.svg" alt="" title="Train Accuracy"></p>
+<p><img src="/blog/images/copied_from_nb/img/20201117-1-train_loss.svg" alt="" title="Train Loss"></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Fitting-all-the-model-after-10-epochs">
+<a class="anchor" href="#Fitting-all-the-model-after-10-epochs" aria-hidden="true"><span class="octicon octicon-link"></span></a>Fitting all the model after 10 epochs<a class="anchor-link" href="#Fitting-all-the-model-after-10-epochs"> </a>
+</h3>
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
+<span class="kn">from</span> <span class="nn">pytorch_lightning.metrics.functional</span> <span class="kn">import</span> <span class="n">accuracy</span>
+
+<span class="kn">from</span> <span class="nn">torch.nn.functional</span> <span class="kn">import</span> <span class="n">cross_entropy</span>
+<span class="kn">from</span> <span class="nn">torch.optim</span> <span class="kn">import</span> <span class="n">Adam</span>
+
+<span class="k">class</span> <span class="nc">ImageClassifier</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_hyperparameters</span><span class="p">()</span>
+        <span class="c1"># self.num_classes = num_classes</span>
+        <span class="c1"># self.lr = lr</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">fc</span><span class="o">.</span><span class="n">in_features</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+        <span class="c1"># return the loss given a batch: this has a computational graph attached to it: optimization</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trainer</span><span class="o">.</span><span class="n">current_epoch</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">preds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">cross_entropy</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_loss'</span><span class="p">,</span> <span class="n">loss</span><span class="p">)</span>  <span class="c1"># lightning detaches your loss graph and uses its value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_acc'</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">loss</span>
+
+    <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># return optimizer</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hparams</span><span class="o">.</span><span class="n">lr</span><span class="p">)</span>  <span class="c1"># self.model.fc.parameters()</span>
+        <span class="k">return</span> <span class="n">optimizer</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">classifier</span> <span class="o">=</span> <span class="n">ImageClassifier</span><span class="p">()</span>
+
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">Trainer</span><span class="p">(</span><span class="n">progress_bar_refresh_rate</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">gpus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">limit_train_batches</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">max_epochs</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">dm</span><span class="p">)</span>  <span class="c1"># train_loader</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>GPU available: True, used: True
+TPU available: False, using: 0 TPU cores
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/usr/local/lib/python3.6/dist-packages/pytorch_lightning/utilities/distributed.py:45: UserWarning: you passed in a val_dataloader but have no validation_step. Skipping validation loop
+  warnings.warn(*args, **kwargs)
+
+  | Name  | Type   | Params
+---------------------------------
+0 | model | ResNet | 23 M  
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>1</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">reload_ext</span> tensorboard
+<span class="o">%</span><span class="k">tensorboard</span> --logdir lightning_logs/
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea ">
+<pre>Reusing TensorBoard on port 6006 (pid 327), started 0:01:19 ago. (Use '!kill 327' to kill it.)</pre>
+</div>
+
+</div>
+
+<div class="output_area">
+
+
+
+
+<div id="e903d134-9cc2-4f96-8436-e2fbce9651e7"></div>
+<div class="output_subarea output_javascript ">
+<script type="text/javascript">
+var element = $('#e903d134-9cc2-4f96-8436-e2fbce9651e7');
+
+        (async () => {
+            const url = await google.colab.kernel.proxyPort(6006, {"cache": true});
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.setAttribute('width', '100%');
+            iframe.setAttribute('height', '800');
+            iframe.setAttribute('frameborder', 0);
+            document.body.appendChild(iframe);
+        })();
+    
+</script>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><img src="/blog/images/copied_from_nb/img/20201117-2-train_acc.svg" alt="" title="Train Accuracy"></p>
+<p><img src="/blog/images/copied_from_nb/img/20201117-2-train_loss.svg" alt="" title="Train Loss"></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Self-Supervised-Pretraining">
+<a class="anchor" href="#Self-Supervised-Pretraining" aria-hidden="true"><span class="octicon octicon-link"></span></a>Self-Supervised Pretraining<a class="anchor-link" href="#Self-Supervised-Pretraining"> </a>
+</h2>
+<p><a href="https://pytorch-lightning-bolts.readthedocs.io/en/latest/self_supervised_models.html#swav">https://pytorch-lightning-bolts.readthedocs.io/en/latest/self_supervised_models.html#swav</a></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Fitting-all-the-model-after-10-epochs">
+<a class="anchor" href="#Fitting-all-the-model-after-10-epochs" aria-hidden="true"><span class="octicon octicon-link"></span></a>Fitting all the model after 10 epochs<a class="anchor-link" href="#Fitting-all-the-model-after-10-epochs"> </a>
+</h3>
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
+<span class="kn">from</span> <span class="nn">pytorch_lightning.metrics.functional</span> <span class="kn">import</span> <span class="n">accuracy</span>
+
+<span class="kn">from</span> <span class="nn">torch.nn.functional</span> <span class="kn">import</span> <span class="n">cross_entropy</span>
+<span class="kn">from</span> <span class="nn">torch.optim</span> <span class="kn">import</span> <span class="n">Adam</span>
+
+<span class="kn">from</span> <span class="nn">pl_bolts.models.self_supervised</span> <span class="kn">import</span> <span class="n">SwAV</span>
+<span class="n">weight_path</span> <span class="o">=</span> <span class="s1">'https://pl-bolts-weights.s3.us-east-2.amazonaws.com/swav/swav_imagenet/swav_imagenet.pth.tar'</span>
+<span class="n">swav</span> <span class="o">=</span> <span class="n">SwAV</span><span class="o">.</span><span class="n">load_from_checkpoint</span><span class="p">(</span><span class="n">weight_path</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># from pl_bolts.models.self_supervised import SimCLR</span>
+<span class="c1"># weight_path = 'https://pl-bolts-weights.s3.us-east-2.amazonaws.com/simclr/simclr-cifar10-v1-exp12_87_52/epoch%3D960.ckpt'</span>
+<span class="c1"># simclr = SimCLR.load_from_checkpoint(weight_path, strict=False)</span>
+
+
+<span class="k">class</span> <span class="nc">ImageClassifier</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_hyperparameters</span><span class="p">()</span>
+        <span class="c1"># self.num_classes = num_classes</span>
+        <span class="c1"># self.lr = lr</span>
+
+        <span class="c1"># self.model = models.resnet50(pretrained=True)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backbone</span> <span class="o">=</span> <span class="n">swav</span><span class="o">.</span><span class="n">model</span>
+        <span class="c1"># self.backbone = simclr</span>
+
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">backbone</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># self.model.fc = torch.nn.Linear(self.model.fc.in_features, num_classes)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finetune_layer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">3000</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+        <span class="c1"># return the loss given a batch: this has a computational graph attached to it: optimization</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trainer</span><span class="o">.</span><span class="n">current_epoch</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">backbone</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="p">(</span><span class="n">features1</span><span class="p">,</span> <span class="n">features2</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backbone</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="n">features2</span>
+        <span class="c1"># features = self.backbone(x)</span>
+        <span class="n">preds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">finetune_layer</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">cross_entropy</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_loss'</span><span class="p">,</span> <span class="n">loss</span><span class="p">)</span>  <span class="c1"># lightning detaches your loss graph and uses its value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_acc'</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">loss</span>
+
+    <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># return optimizer</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hparams</span><span class="o">.</span><span class="n">lr</span><span class="p">)</span>  <span class="c1"># self.model.fc.parameters()</span>
+        <span class="k">return</span> <span class="n">optimizer</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Downloading: "https://pl-bolts-weights.s3.us-east-2.amazonaws.com/swav/swav_imagenet/swav_imagenet.pth.tar" to /root/.cache/torch/hub/checkpoints/swav_imagenet.pth.tar
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">classifier</span> <span class="o">=</span> <span class="n">ImageClassifier</span><span class="p">()</span>
+
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">Trainer</span><span class="p">(</span><span class="n">progress_bar_refresh_rate</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">gpus</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">limit_train_batches</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">max_epochs</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">dm</span><span class="p">)</span>  <span class="c1"># train_loader</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>GPU available: True, used: True
+TPU available: False, using: 0 TPU cores
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/usr/local/lib/python3.6/dist-packages/pytorch_lightning/utilities/distributed.py:45: UserWarning: you passed in a val_dataloader but have no validation_step. Skipping validation loop
+  warnings.warn(*args, **kwargs)
+
+  | Name           | Type   | Params
+------------------------------------------
+0 | backbone       | ResNet | 28 M  
+1 | finetune_layer | Linear | 30 K  
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>1</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">reload_ext</span> tensorboard
+<span class="o">%</span><span class="k">tensorboard</span> --logdir lightning_logs/
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea ">
+<pre>Reusing TensorBoard on port 6006 (pid 327), started 0:03:19 ago. (Use '!kill 327' to kill it.)</pre>
+</div>
+
+</div>
+
+<div class="output_area">
+
+
+
+
+<div id="4ead2575-d4d6-4728-a49b-8c7d550088a1"></div>
+<div class="output_subarea output_javascript ">
+<script type="text/javascript">
+var element = $('#4ead2575-d4d6-4728-a49b-8c7d550088a1');
+
+        (async () => {
+            const url = await google.colab.kernel.proxyPort(6006, {"cache": true});
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.setAttribute('width', '100%');
+            iframe.setAttribute('height', '800');
+            iframe.setAttribute('frameborder', 0);
+            document.body.appendChild(iframe);
+        })();
+    
+</script>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><img src="/blog/images/copied_from_nb/img/20201117-3-train_acc.svg" alt="" title="Train Accuracy"></p>
+<p><img src="/blog/images/copied_from_nb/img/20201117-3-train_loss.svg" alt="" title="Train Loss"></p>
+
+</div>
+</div>
+</div>
+</div>
+
+<script type="application/vnd.jupyter.widget-state+json">
+{"31534b5987ec499380fc4a7c83719ed7": {"model_module": "@jupyter-widgets/controls", "model_name": "HBoxModel", "state": {"_view_name": "HBoxView", "_dom_classes": [], "_model_name": "HBoxModel", "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.5.0", "box_style": "", "layout": "IPY_MODEL_036460d9326649ffb7e4b6af664039a7", "_model_module": "@jupyter-widgets/controls", "children": ["IPY_MODEL_b486f0e7724447ffbbd2fabca595f90b", "IPY_MODEL_375f29ba164b4c2888320825280c88d4"]}}, "036460d9326649ffb7e4b6af664039a7": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": null, "width": null, "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": null, "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": null, "left": null}}, "b486f0e7724447ffbbd2fabca595f90b": {"model_module": "@jupyter-widgets/controls", "model_name": "FloatProgressModel", "state": {"_view_name": "ProgressView", "style": "IPY_MODEL_2fe596e4ae644e4daba24176144705c6", "_dom_classes": [], "description": "100%", "_model_name": "FloatProgressModel", "bar_style": "success", "max": 102502400, "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "value": 102502400, "_view_count": null, "_view_module_version": "1.5.0", "orientation": "horizontal", "min": 0, "description_tooltip": null, "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_8f5912149fad4643b177e7ddf1f2da2c"}}, "375f29ba164b4c2888320825280c88d4": {"model_module": "@jupyter-widgets/controls", "model_name": "HTMLModel", "state": {"_view_name": "HTMLView", "style": "IPY_MODEL_23790556c2a6454d80afcfce803d60cf", "_dom_classes": [], "description": "", "_model_name": "HTMLModel", "placeholder": "\u200b", "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "value": " 97.8M/97.8M [00:00&lt;00:00, 225MB/s]", "_view_count": null, "_view_module_version": "1.5.0", "description_tooltip": null, "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_7bd2c6b8dd6c4a0383d2b6b17ff43c77"}}, "2fe596e4ae644e4daba24176144705c6": {"model_module": "@jupyter-widgets/controls", "model_name": "ProgressStyleModel", "state": {"_view_name": "StyleView", "_model_name": "ProgressStyleModel", "description_width": "initial", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.2.0", "bar_color": null, "_model_module": "@jupyter-widgets/controls"}}, "8f5912149fad4643b177e7ddf1f2da2c": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": null, "width": null, "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": null, "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": null, "left": null}}, "23790556c2a6454d80afcfce803d60cf": {"model_module": "@jupyter-widgets/controls", "model_name": "DescriptionStyleModel", "state": {"_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "description_width": "", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.2.0", "_model_module": "@jupyter-widgets/controls"}}, "7bd2c6b8dd6c4a0383d2b6b17ff43c77": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": null, "width": null, "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": null, "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": null, "left": null}}, "cd0cf0725f414a31abb0ae90bfd0285c": {"model_module": "@jupyter-widgets/controls", "model_name": "HBoxModel", "state": {"_view_name": "HBoxView", "_dom_classes": [], "_model_name": "HBoxModel", "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.5.0", "box_style": "", "layout": "IPY_MODEL_fc241673365b4b84bfc418f80c41d362", "_model_module": "@jupyter-widgets/controls", "children": ["IPY_MODEL_95a51a2d81ce498b9303041d01890dab", "IPY_MODEL_53d62c35481b49f9a18288361218f26f"]}}, "fc241673365b4b84bfc418f80c41d362": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": null, "width": null, "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": null, "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": null, "left": null}}, "95a51a2d81ce498b9303041d01890dab": {"model_module": "@jupyter-widgets/controls", "model_name": "FloatProgressModel", "state": {"_view_name": "ProgressView", "style": "IPY_MODEL_dd09d0f41c6e4f988b3d4e6f78ac8b37", "_dom_classes": [], "description": "", "_model_name": "FloatProgressModel", "bar_style": "success", "max": 1, "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "value": 1, "_view_count": null, "_view_module_version": "1.5.0", "orientation": "horizontal", "min": 0, "description_tooltip": null, "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_a718f82dc3e34e3fbf6042b2a8d0d8a3"}}, "53d62c35481b49f9a18288361218f26f": {"model_module": "@jupyter-widgets/controls", "model_name": "HTMLModel", "state": {"_view_name": "HTMLView", "style": "IPY_MODEL_8a59a7409057441cb22f94f1fe05c4ea", "_dom_classes": [], "description": "", "_model_name": "HTMLModel", "placeholder": "\u200b", "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "value": " 170500096/? [00:06&lt;00:00, 25424436.15it/s]", "_view_count": null, "_view_module_version": "1.5.0", "description_tooltip": null, "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_335218d00b0c4241aa198f72b2883b36"}}, "dd09d0f41c6e4f988b3d4e6f78ac8b37": {"model_module": "@jupyter-widgets/controls", "model_name": "ProgressStyleModel", "state": {"_view_name": "StyleView", "_model_name": "ProgressStyleModel", "description_width": "initial", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.2.0", "bar_color": null, "_model_module": "@jupyter-widgets/controls"}}, "a718f82dc3e34e3fbf6042b2a8d0d8a3": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": null, "width": null, "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": null, "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": null, "left": null}}, "8a59a7409057441cb22f94f1fe05c4ea": {"model_module": "@jupyter-widgets/controls", "model_name": "DescriptionStyleModel", "state": {"_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "description_width": "", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.2.0", "_model_module": "@jupyter-widgets/controls"}}, "335218d00b0c4241aa198f72b2883b36": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": null, "width": null, "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": null, "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": null, "left": null}}, "fea32acfe4c64b47b94822fdafe480bd": {"model_module": "@jupyter-widgets/controls", "model_name": "HBoxModel", "state": {"_view_name": "HBoxView", "_dom_classes": [], "_model_name": "HBoxModel", "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.5.0", "box_style": "", "layout": "IPY_MODEL_46f30dc91ed64a00887e0d45ecf3d207", "_model_module": "@jupyter-widgets/controls", "children": ["IPY_MODEL_9cad3e005cb2432392c89e76d132adcb", "IPY_MODEL_2d22cd389c0b4aae9da89b1f51b00c12"]}}, "46f30dc91ed64a00887e0d45ecf3d207": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": "row wrap", "width": "100%", "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": null, "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": "inline-flex", "left": null}}, "9cad3e005cb2432392c89e76d132adcb": {"model_module": "@jupyter-widgets/controls", "model_name": "FloatProgressModel", "state": {"_view_name": "ProgressView", "style": "IPY_MODEL_4de64c2d192f4d818d1d22a0f19a6baa", "_dom_classes": [], "description": "Epoch 1: 100%", "_model_name": "FloatProgressModel", "bar_style": "danger", "max": 1406, "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "value": 1400, "_view_count": null, "_view_module_version": "1.5.0", "orientation": "horizontal", "min": 0, "description_tooltip": null, "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_977e6bea93c941ff9257ce40e12a9755"}}, "2d22cd389c0b4aae9da89b1f51b00c12": {"model_module": "@jupyter-widgets/controls", "model_name": "HTMLModel", "state": {"_view_name": "HTMLView", "style": "IPY_MODEL_0b33ca40b4ec4fddb252c84951c795e6", "_dom_classes": [], "description": "", "_model_name": "HTMLModel", "placeholder": "\u200b", "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "value": " 1400/1406 [00:33&lt;00:00, 41.24it/s, loss=1.579, v_num=0]", "_view_count": null, "_view_module_version": "1.5.0", "description_tooltip": null, "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_0e463fc30c2542cb97c392835f156ce9"}}, "4de64c2d192f4d818d1d22a0f19a6baa": {"model_module": "@jupyter-widgets/controls", "model_name": "ProgressStyleModel", "state": {"_view_name": "StyleView", "_model_name": "ProgressStyleModel", "description_width": "initial", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.2.0", "bar_color": null, "_model_module": "@jupyter-widgets/controls"}}, "977e6bea93c941ff9257ce40e12a9755": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": null, "width": null, "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": "2", "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": null, "left": null}}, "0b33ca40b4ec4fddb252c84951c795e6": {"model_module": "@jupyter-widgets/controls", "model_name": "DescriptionStyleModel", "state": {"_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "description_width": "", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.2.0", "_model_module": "@jupyter-widgets/controls"}}, "0e463fc30c2542cb97c392835f156ce9": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": null, "width": null, "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": null, "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": null, "left": null}}, "27a40660845444a5bb03756476286750": {"model_module": "@jupyter-widgets/controls", "model_name": "HBoxModel", "state": {"_view_name": "HBoxView", "_dom_classes": [], "_model_name": "HBoxModel", "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.5.0", "box_style": "", "layout": "IPY_MODEL_b30f8ec779444a10a2b290b84eab84eb", "_model_module": "@jupyter-widgets/controls", "children": ["IPY_MODEL_0e3cc5f898bc42d39cd8c20e114c8940", "IPY_MODEL_94a44485621649a4b43bdd5250df34b4"]}}, "b30f8ec779444a10a2b290b84eab84eb": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": "row wrap", "width": "100%", "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": null, "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": "inline-flex", "left": null}}, "0e3cc5f898bc42d39cd8c20e114c8940": {"model_module": "@jupyter-widgets/controls", "model_name": "FloatProgressModel", "state": {"_view_name": "ProgressView", "style": "IPY_MODEL_00a5613b0e0a44d1b677f0f27ac84cc6", "_dom_classes": [], "description": "Epoch 19: 100%", "_model_name": "FloatProgressModel", "bar_style": "success", "max": 20, "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "value": 20, "_view_count": null, "_view_module_version": "1.5.0", "orientation": "horizontal", "min": 0, "description_tooltip": null, "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_01b44be21da0497ea1e9eec72677c79e"}}, "94a44485621649a4b43bdd5250df34b4": {"model_module": "@jupyter-widgets/controls", "model_name": "HTMLModel", "state": {"_view_name": "HTMLView", "style": "IPY_MODEL_5cb0fb5c76064e97b4c8025a5a5aee2d", "_dom_classes": [], "description": "", "_model_name": "HTMLModel", "placeholder": "\u200b", "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "value": " 20/20 [00:05&lt;00:00,  3.93it/s, loss=1.591, v_num=1]", "_view_count": null, "_view_module_version": "1.5.0", "description_tooltip": null, "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_25c4a048ceb84846a9dea0fad46fdbcf"}}, "00a5613b0e0a44d1b677f0f27ac84cc6": {"model_module": "@jupyter-widgets/controls", "model_name": "ProgressStyleModel", "state": {"_view_name": "StyleView", "_model_name": "ProgressStyleModel", "description_width": "initial", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.2.0", "bar_color": null, "_model_module": "@jupyter-widgets/controls"}}, "01b44be21da0497ea1e9eec72677c79e": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": null, "width": null, "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": "2", "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": null, "left": null}}, "5cb0fb5c76064e97b4c8025a5a5aee2d": {"model_module": "@jupyter-widgets/controls", "model_name": "DescriptionStyleModel", "state": {"_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "description_width": "", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.2.0", "_model_module": "@jupyter-widgets/controls"}}, "25c4a048ceb84846a9dea0fad46fdbcf": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": null, "width": null, "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": null, "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": null, "left": null}}, "09018da0592343f982be0023aeb55072": {"model_module": "@jupyter-widgets/controls", "model_name": "HBoxModel", "state": {"_view_name": "HBoxView", "_dom_classes": [], "_model_name": "HBoxModel", "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.5.0", "box_style": "", "layout": "IPY_MODEL_7d161381fb404f898d1e3c2d46325490", "_model_module": "@jupyter-widgets/controls", "children": ["IPY_MODEL_2a6c8110ab0945b3a558aca5c67449f7", "IPY_MODEL_a6bdd80a8b664e61b4145353283743d0"]}}, "7d161381fb404f898d1e3c2d46325490": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": null, "width": null, "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": null, "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": null, "left": null}}, "2a6c8110ab0945b3a558aca5c67449f7": {"model_module": "@jupyter-widgets/controls", "model_name": "FloatProgressModel", "state": {"_view_name": "ProgressView", "style": "IPY_MODEL_ab6f92760e6c49ccb57b78270ad2a916", "_dom_classes": [], "description": "100%", "_model_name": "FloatProgressModel", "bar_style": "success", "max": 338149121, "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "value": 338149121, "_view_count": null, "_view_module_version": "1.5.0", "orientation": "horizontal", "min": 0, "description_tooltip": null, "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_36337c0485ee4ebb99d734435dc69d19"}}, "a6bdd80a8b664e61b4145353283743d0": {"model_module": "@jupyter-widgets/controls", "model_name": "HTMLModel", "state": {"_view_name": "HTMLView", "style": "IPY_MODEL_a2678e487c8e41f6a49b4609b0b9af35", "_dom_classes": [], "description": "", "_model_name": "HTMLModel", "placeholder": "\u200b", "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "value": " 322M/322M [00:09&lt;00:00, 36.4MB/s]", "_view_count": null, "_view_module_version": "1.5.0", "description_tooltip": null, "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_016faf3d2d7d4561b3cb0ca0a805d6a9"}}, "ab6f92760e6c49ccb57b78270ad2a916": {"model_module": "@jupyter-widgets/controls", "model_name": "ProgressStyleModel", "state": {"_view_name": "StyleView", "_model_name": "ProgressStyleModel", "description_width": "initial", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.2.0", "bar_color": null, "_model_module": "@jupyter-widgets/controls"}}, "36337c0485ee4ebb99d734435dc69d19": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": null, "width": null, "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": null, "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": null, "left": null}}, "a2678e487c8e41f6a49b4609b0b9af35": {"model_module": "@jupyter-widgets/controls", "model_name": "DescriptionStyleModel", "state": {"_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "description_width": "", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.2.0", "_model_module": "@jupyter-widgets/controls"}}, "016faf3d2d7d4561b3cb0ca0a805d6a9": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": null, "width": null, "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": null, "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": null, "left": null}}, "21f3adea67544beba3e07417703ca606": {"model_module": "@jupyter-widgets/controls", "model_name": "HBoxModel", "state": {"_view_name": "HBoxView", "_dom_classes": [], "_model_name": "HBoxModel", "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.5.0", "box_style": "", "layout": "IPY_MODEL_bfc7e7d40e8c485a80c307bc43c9a20c", "_model_module": "@jupyter-widgets/controls", "children": ["IPY_MODEL_c7d9be3f16c848ea80abf37790befda2", "IPY_MODEL_ea36a363d8974035bfb41c68f25d1c3b"]}}, "bfc7e7d40e8c485a80c307bc43c9a20c": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": "row wrap", "width": "100%", "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": null, "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": "inline-flex", "left": null}}, "c7d9be3f16c848ea80abf37790befda2": {"model_module": "@jupyter-widgets/controls", "model_name": "FloatProgressModel", "state": {"_view_name": "ProgressView", "style": "IPY_MODEL_5b52827a6966429f91c3cbe24c4059f8", "_dom_classes": [], "description": "Epoch 19: 100%", "_model_name": "FloatProgressModel", "bar_style": "success", "max": 20, "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "value": 20, "_view_count": null, "_view_module_version": "1.5.0", "orientation": "horizontal", "min": 0, "description_tooltip": null, "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_1590b88c65164b698fc931872c2e8b06"}}, "ea36a363d8974035bfb41c68f25d1c3b": {"model_module": "@jupyter-widgets/controls", "model_name": "HTMLModel", "state": {"_view_name": "HTMLView", "style": "IPY_MODEL_53e8ebf20ded4a4fbffb79cef64206d1", "_dom_classes": [], "description": "", "_model_name": "HTMLModel", "placeholder": "\u200b", "_view_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "value": " 20/20 [00:08&lt;00:00,  2.23it/s, loss=0.918, v_num=2]", "_view_count": null, "_view_module_version": "1.5.0", "description_tooltip": null, "_model_module": "@jupyter-widgets/controls", "layout": "IPY_MODEL_c3ce9f0c12734f16bc664bc619de0517"}}, "5b52827a6966429f91c3cbe24c4059f8": {"model_module": "@jupyter-widgets/controls", "model_name": "ProgressStyleModel", "state": {"_view_name": "StyleView", "_model_name": "ProgressStyleModel", "description_width": "initial", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.2.0", "bar_color": null, "_model_module": "@jupyter-widgets/controls"}}, "1590b88c65164b698fc931872c2e8b06": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": null, "width": null, "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": "2", "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": null, "left": null}}, "53e8ebf20ded4a4fbffb79cef64206d1": {"model_module": "@jupyter-widgets/controls", "model_name": "DescriptionStyleModel", "state": {"_view_name": "StyleView", "_model_name": "DescriptionStyleModel", "description_width": "", "_view_module": "@jupyter-widgets/base", "_model_module_version": "1.5.0", "_view_count": null, "_view_module_version": "1.2.0", "_model_module": "@jupyter-widgets/controls"}}, "c3ce9f0c12734f16bc664bc619de0517": {"model_module": "@jupyter-widgets/base", "model_name": "LayoutModel", "state": {"_view_name": "LayoutView", "grid_template_rows": null, "right": null, "justify_content": null, "_view_module": "@jupyter-widgets/base", "overflow": null, "_model_module_version": "1.2.0", "_view_count": null, "flex_flow": null, "width": null, "min_width": null, "border": null, "align_items": null, "bottom": null, "_model_module": "@jupyter-widgets/base", "top": null, "grid_column": null, "overflow_y": null, "overflow_x": null, "grid_auto_flow": null, "grid_area": null, "grid_template_columns": null, "flex": null, "_model_name": "LayoutModel", "justify_items": null, "grid_row": null, "max_height": null, "align_content": null, "visibility": null, "align_self": null, "height": null, "min_height": null, "padding": null, "grid_auto_rows": null, "grid_gap": null, "max_width": null, "order": null, "_view_module_version": "1.2.0", "grid_template_areas": null, "object_position": null, "object_fit": null, "grid_auto_columns": null, "margin": null, "display": null, "left": null}}}
+</script>
+
+
+
+  </div><a class="u-url" href="/blog/2020/11/17/pytorch-lightning-transfer-learning.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>A journey from Data to AI. The journey is the reward.</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/albertvillanova" title="albertvillanova"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://stackoverflow.com/users/4274763" title="4274763"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#stackoverflow"></use></svg></a></li><li><a rel="me" href="https://www.linkedin.com/in/albertvillanova" title="albertvillanova"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#linkedin"></use></svg></a></li><li><a rel="me" href="https://twitter.com/avillanovamoral" title="avillanovamoral"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
